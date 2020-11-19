@@ -1,37 +1,33 @@
-import express, { Request, Response, NextFunction } from "express";
+import express from "express";
 import bodyParser from "body-parser";
+import cookieParser from "cookie-parser";
 import cors from "cors";
-import { corsUrl, environment } from "./config";
-import { ApolloServer, gql } from "apollo-server-express";
+import { corsUrl } from "./config";
+import { ApolloServer, ApolloError } from "apollo-server-express";
+import schema from "./schema";
+import resolvers from "./resolvers";
+import { get_user_from_token } from "./utils/auth-helper";
 
 const app = express();
-const data = {
-  me: {
-    username: "Robin Wieruch",
-  },
-};
-const schema = gql`
-  type Query {
-    me: User
-  }
-  type User {
-    username: String!
-  }
-`;
-const resolvers = {
-  Query: {
-    me: () => {
-      return {
-        username: "Robin Wieruch",
-      };
-    },
-  },
-};
+
 const server = new ApolloServer({
   typeDefs: schema,
   resolvers,
+  context: async ({ req }) => {
+    if (req) {
+      let authToken = null;
+      let me = null;
+      try {
+        authToken = req.headers["access-token"];
+        console.log("authToken", authToken);
+        if (authToken) me = await get_user_from_token(authToken.toString());
+      } catch (e) {
+        throw new ApolloError(e);
+      }
+      return { authToken, me };
+    }
+  },
 });
-server.applyMiddleware({ app, path: "/graphql" });
 app.use(bodyParser.json({ limit: "10mb" }));
 app.use(
   bodyParser.urlencoded({
@@ -40,13 +36,11 @@ app.use(
     parameterLimit: 50000,
   })
 );
+app.use(cookieParser());
 app.use(cors({ origin: corsUrl, optionsSuccessStatus: 200 }));
-// Routes
-// app.use("/", (req: Request, res: Response) => {
-//   res.send("Hello World!");
-// });
 process.on("uncaughtException", (e) => {
   console.error(e);
 });
+server.applyMiddleware({ app, path: "/graphql" });
 
 export default app;

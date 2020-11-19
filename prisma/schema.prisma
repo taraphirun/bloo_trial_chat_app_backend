@@ -8,19 +8,26 @@ datasource db {
 }
 
 model messages {
-  id        Int      @id @default(autoincrement())
+  id        String   @id
   content   String
-  timestamp DateTime
-  user_id   Int?
-  users     users?   @relation(fields: [user_id], references: [id])
+  createdAt DateTime
+  user_id   String
+  updatedAt DateTime
+  users     users    @relation(fields: [user_id], references: [id])
 }
 
 model users {
-  id         Int        @id @default(autoincrement())
+  id         String     @id
   first_name String?
   last_name  String?
   username   String     @unique
   password   String
   nickname   String?
+  createdAt  DateTime
+  updatedAt  DateTime
   messages   messages[]
+}
+
+model blacklist {
+  token String @id
 }
