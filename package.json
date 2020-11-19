@@ -1,0 +1,35 @@
+{
+  "name": "backend",
+  "version": "1.0.0",
+  "description": "Graphql backend for Bloo trail chat app",
+  "main": "server.ts",
+  "author": "Phirun Tara",
+  "license": "MIT",
+  "scripts": {
+    "dev": "npx nodemon",
+    "start": "yarn build && yarn serve",
+    "serve": "node -r dotenv/config build/server.js",
+    "serve-pm2": "pm2 kill && pm2 start",
+    "build": "yarn build-ts",
+    "watch": "concurrently -k -p \"[{name}]\" -n \"TypeScript,Node\" -c \"yellow.bold,cyan.bold,green.bold\" \"yarn watch-ts\" \"yarn watch-node\"",
+    "watch-node": "nodemon -r dotenv/config build/server.js",
+    "build-ts": "npx tsc",
+    "watch-ts": "npx tsc -w",
+    "lint": "eslint . --ext .js,.ts",
+    "test": "jest --forceExit --detectOpenHandles --coverage --verbose"
+  },
+  "devDependencies": {
+    "@prisma/cli": "2.11.0",
+    "@types/node": "^14.14.8",
+    "nodemon": "^2.0.6",
+    "ts-node": "^9.0.0",
+    "typescript": "^4.0.5"
+  },
+  "dependencies": {
+    "@prisma/client": "2.11.0",
+    "apollo-server": "^2.19.0",
+    "apollo-server-express": "^2.19.0",
+    "dotenv": "^8.2.0",
+    "express": "^4.17.1"
+  }
+}
