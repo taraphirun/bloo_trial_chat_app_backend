@@ -1,13 +1,14 @@
 import express from "express";
 import bodyParser from "body-parser";
 import cookieParser from "cookie-parser";
-import cors from "cors";
-import { corsUrl } from "./config";
 import { ApolloServer, ApolloError } from "apollo-server-express";
 import schema from "./schema";
 import resolvers from "./resolvers";
 import { get_user_from_token } from "./utils/auth-helper";
-import { visitInParallel } from "graphql";
+import http from "http";
+import { PubSub } from "apollo-server";
+
+const pubsub = new PubSub();
 
 const app = express();
 app.use(bodyParser.json({ limit: "10mb" }));
@@ -28,12 +29,21 @@ const allowCrossDomain: express.RequestHandler = (req, res, next) => {
   next();
 };
 app.use(allowCrossDomain);
-// app.use(cors({ origin: corsUrl, optionsSuccessStatus: 200 }));
+
 const server = new ApolloServer({
   typeDefs: schema,
   resolvers,
-  context: async ({ req, res }) => {
+  context: async ({ req, res, connection }) => {
+    // if (connection) {
+    //   console.log("modelsmodelsmodelsmodels", models);
+    //   return models;
+    // }
+    if (connection) {
+      console.log("Geting connectionconnection");
+      return;
+    }
     if (req) {
+      console.log("Geting ressssssss");
       let authToken = null;
       let me = null;
       try {
@@ -50,5 +60,7 @@ process.on("uncaughtException", (e) => {
   console.error(e);
 });
 server.applyMiddleware({ app, path: "/graphql" });
+const httpServer = http.createServer(app);
+server.installSubscriptionHandlers(httpServer);
 
-export default app;
+export default httpServer;

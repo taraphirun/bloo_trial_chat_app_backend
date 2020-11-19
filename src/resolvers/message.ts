@@ -9,6 +9,7 @@ import { v4 as uuidv4 } from "uuid";
 const prisma = new PrismaClient();
 import { combineResolvers } from "graphql-resolvers";
 import { isAuthenticated, isAuthorizedMessageOwner } from "./auth";
+import pubsub, { EVENTS } from "../subscription";
 
 export default {
   Message: {
@@ -48,7 +49,7 @@ export default {
       isAuthenticated,
       async (_: any, { content }: any, { me }: any) => {
         try {
-          return await prisma.messages.create({
+          const message = await prisma.messages.create({
             data: {
               id: uuidv4(),
               content: content,
@@ -59,6 +60,10 @@ export default {
               updatedAt: new Date(),
             },
           });
+          await pubsub.publish(EVENTS.MESSAGE.MESSAGE_CREATED, {
+            messageCreated: message,
+          });
+          return message;
         } catch (e) {
           throw new ApolloError(e);
         }
@@ -69,10 +74,14 @@ export default {
       isAuthorizedMessageOwner,
       async (_: any, { id, content }: any) => {
         try {
-          return await prisma.messages.update({
+          const message = await prisma.messages.update({
             data: { content: content, updatedAt: new Date() },
             where: { id: id },
           });
+          await pubsub.publish(EVENTS.MESSAGE.MESSAGE_UPDATED, {
+            messageCreated: message,
+          });
+          return message;
         } catch (e) {
           throw new ApolloError(e);
         }
@@ -83,13 +92,28 @@ export default {
       isAuthorizedMessageOwner,
       async (_: any, { id }: any) => {
         try {
-          return await prisma.messages.delete({
+          const message = await prisma.messages.delete({
             where: { id: id },
           });
+          await pubsub.publish(EVENTS.MESSAGE.MESSAGE_DELETED, {
+            messageCreated: message,
+          });
+          return message;
         } catch (e) {
           throw new ApolloError(e);
         }
       }
     ) as MessageResolvers,
+  },
+  Subscription: {
+    messageCreated: {
+      subscribe: () => pubsub.asyncIterator(EVENTS.MESSAGE.MESSAGE_CREATED),
+    },
+    messageDeleted: {
+      subscribe: () => pubsub.asyncIterator(EVENTS.MESSAGE.MESSAGE_DELETED),
+    },
+    messageUpdated: {
+      subscribe: () => pubsub.asyncIterator(EVENTS.MESSAGE.MESSAGE_UPDATED),
+    },
   },
 };

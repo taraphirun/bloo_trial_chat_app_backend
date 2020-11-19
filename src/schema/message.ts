@@ -17,4 +17,9 @@ export default gql`
     updateMessage(id: ID!, content: String!): Message!
     deleteMessage(id: ID!): Message!
   }
+  extend type Subscription {
+    messageCreated: Message!
+    messageUpdated: Message!
+    messageDeleted: Message!
+  }
 `;

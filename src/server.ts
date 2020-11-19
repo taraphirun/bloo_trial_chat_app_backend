@@ -1,7 +1,7 @@
 import { port } from "./config";
-import app from "./app";
+import httpServer from "./app";
 
-app
+httpServer
   .listen(port, () => {
     console.log(`🚀 Server is taking off from port : ${port}`);
   })

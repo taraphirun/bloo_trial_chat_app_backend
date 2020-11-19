@@ -11,6 +11,7 @@ import jwt from "jsonwebtoken";
 import { jwt_access_token_secret, jwt_refresh_token_secret } from "../config";
 import { combineResolvers } from "graphql-resolvers";
 import { isAuthenticated, isAuthorizedUserOwner } from "./auth";
+import pubsub, { EVENTS } from "../subscription";
 
 const prisma = new PrismaClient();
 const saltRounds = 10;
@@ -26,6 +27,7 @@ export default {
       }
     },
   },
+
   Query: {
     me: combineResolvers(
       isAuthenticated,
@@ -100,9 +102,9 @@ export default {
         const user = await prisma.users.findOne({
           where: { username: username },
         });
-        if (!user) return null;
+        if (!user) return {} as User;
         const is_valid = await bcrypt.compare(password, user.password);
-        if (!is_valid) return null;
+        if (!is_valid) return {} as User;
         // const refreshToken = jwt.sign(
         //   {
         //     userID: user.id,
@@ -125,19 +127,28 @@ export default {
           maxAge: 1000 * 60 * 15,
           httpOnly: false,
         });
-        return { token: accessToken };
+        await pubsub.publish(EVENTS.MESSAGE.USER_LOGGED_IN, {
+          userLoggedIn: user,
+        });
+        return user;
       } catch (e) {
         throw new ApolloError(e);
       }
     },
     logoutUser: combineResolvers(
       isAuthenticated,
-      async (_: any, args: any, { authToken }: any) => {
+      async (_: any, args: any, { authToken, me }: any) => {
         try {
+          const user = prisma.users.findOne({
+            where: { id: me.userID },
+          });
           await prisma.blacklist.create({
             data: {
               token: authToken,
             },
+          });
+          await pubsub.publish(EVENTS.MESSAGE.USER_LOGGED_OUT, {
+            userLoggedOut: user,
           });
           return true;
         } catch (e) {
@@ -185,5 +196,13 @@ export default {
         }
       }
     ) as UserResolvers,
+  },
+  Subscription: {
+    userLoggedIn: {
+      subscribe: () => pubsub.asyncIterator(EVENTS.MESSAGE.USER_LOGGED_IN),
+    },
+    userLoggedOut: {
+      subscribe: () => pubsub.asyncIterator(EVENTS.MESSAGE.USER_LOGGED_OUT),
+    },
   },
 };

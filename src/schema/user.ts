@@ -25,8 +25,8 @@ export default gql`
       password: String!
       first_name: String
       last_name: String
-    ): Token!
-    loginUser(username: String!, password: String!): Token
+    ): User!
+    loginUser(username: String!, password: String!): User!
     logoutUser: Boolean!
     updateUser(
       id: ID!
@@ -37,5 +37,10 @@ export default gql`
       password: String
     ): User!
     deleteUser(id: ID!): User!
+  }
+  extend type Subscription {
+    userLoggedIn: User!
+    userLoggedOut: User!
+    userTyping: User!
   }
 `;
