@@ -10,7 +10,7 @@ import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import { jwt_access_token_secret, jwt_refresh_token_secret } from "../config";
 import { combineResolvers } from "graphql-resolvers";
-import { isAuthenticated } from "./auth";
+import { isAuthenticated, isAuthorizedUserOwner } from "./auth";
 
 const prisma = new PrismaClient();
 const saltRounds = 10;
@@ -57,8 +57,7 @@ export default {
   Mutation: {
     signUpUser: async (
       _: any,
-      { nickname, username, password, first_name, last_name }: any,
-      { res }: any
+      { nickname, username, password, first_name, last_name }: any
     ) => {
       try {
         const hashedPassword = await bcrypt.hash(password, saltRounds);
@@ -101,10 +100,8 @@ export default {
         const user = await prisma.users.findOne({
           where: { username: username },
         });
-        console.log("user", user);
         if (!user) return null;
         const is_valid = await bcrypt.compare(password, user.password);
-        console.log("is_valid", is_valid);
         if (!is_valid) return null;
         // const refreshToken = jwt.sign(
         //   {
@@ -124,6 +121,10 @@ export default {
             expiresIn: "20min",
           }
         );
+        res.cookie("access-token", accessToken, {
+          maxAge: 1000 * 60 * 15,
+          httpOnly: false,
+        });
         return { token: accessToken };
       } catch (e) {
         throw new ApolloError(e);
@@ -133,7 +134,6 @@ export default {
       isAuthenticated,
       async (_: any, args: any, { authToken }: any) => {
         try {
-          console.log("authToken", authToken);
           await prisma.blacklist.create({
             data: {
               token: authToken,
@@ -147,6 +147,7 @@ export default {
     ) as unknown) as IResolverObject,
     updateUser: (combineResolvers(
       isAuthenticated,
+      isAuthorizedUserOwner,
       async (
         _: any,
         { id, first_name, last_name, nickname, username, password }: any
@@ -173,6 +174,7 @@ export default {
     ) as unknown) as IResolverObject,
     deleteUser: (combineResolvers(
       isAuthenticated,
+      isAuthorizedUserOwner,
       async (_: any, { id }: any) => {
         try {
           return await prisma.users.delete({

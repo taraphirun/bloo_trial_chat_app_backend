@@ -66,6 +66,7 @@ export default {
     ) as unknown) as IResolverObject,
     updateMessage: (combineResolvers(
       isAuthenticated,
+      isAuthorizedMessageOwner,
       async (_: any, { id, content }: any) => {
         try {
           return await prisma.messages.update({
@@ -79,6 +80,7 @@ export default {
     ) as unknown) as IResolverObject,
     deleteMessage: (combineResolvers(
       isAuthenticated,
+      isAuthorizedMessageOwner,
       async (_: any, { id }: any) => {
         try {
           return await prisma.messages.delete({
