@@ -14,6 +14,7 @@ export const isAuthorizedMessageOwner = async (
   const message = await prisma.messages.findOne({ where: { id: id } });
   let isOwner = false;
   if (message && message.user_id === me.userID) isOwner = true;
+  // return skip;
   return isOwner
     ? skip
     : new ForbiddenError(
@@ -28,6 +29,7 @@ export const isAuthorizedUserOwner = async (
   const user = await prisma.users.findOne({ where: { id: id } });
   let isOwner = false;
   if (user && user.id === me.userID) isOwner = true;
+  // return skip;
   return isOwner
     ? skip
     : new ForbiddenError(

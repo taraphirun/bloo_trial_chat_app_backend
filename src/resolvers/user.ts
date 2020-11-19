@@ -1,4 +1,4 @@
-import { User } from "../generated/graphql";
+import { User, UserResolvers } from "../generated/graphql";
 import {
   ApolloError,
   ValidationError,
@@ -27,14 +27,14 @@ export default {
     },
   },
   Query: {
-    me: (combineResolvers(
+    me: combineResolvers(
       isAuthenticated,
       async (_: any, args: any, { me }: any) => {
         return await prisma.users.findOne({ where: { id: me.userID } });
       }
-    ) as unknown) as IResolverObject,
+    ) as UserResolvers,
 
-    user: (combineResolvers(isAuthenticated, async (_: any, args: any) => {
+    user: combineResolvers(isAuthenticated, async (_: any, args: any) => {
       try {
         const userInfo = await prisma.users.findOne({
           where: { id: args.id },
@@ -45,14 +45,14 @@ export default {
       } catch (e) {
         throw new ApolloError(e);
       }
-    }) as unknown) as IResolverObject,
-    users: (combineResolvers(isAuthenticated, async () => {
+    }) as UserResolvers,
+    users: combineResolvers(isAuthenticated, async () => {
       try {
         return await prisma.users.findMany();
       } catch (e) {
         throw new ApolloError(e);
       }
-    }) as unknown) as IResolverObject,
+    }) as UserResolvers,
   },
   Mutation: {
     signUpUser: async (
@@ -130,7 +130,7 @@ export default {
         throw new ApolloError(e);
       }
     },
-    logoutUser: (combineResolvers(
+    logoutUser: combineResolvers(
       isAuthenticated,
       async (_: any, args: any, { authToken }: any) => {
         try {
@@ -144,8 +144,8 @@ export default {
           throw new ApolloError(e);
         }
       }
-    ) as unknown) as IResolverObject,
-    updateUser: (combineResolvers(
+    ) as UserResolvers,
+    updateUser: combineResolvers(
       isAuthenticated,
       isAuthorizedUserOwner,
       async (
@@ -171,8 +171,8 @@ export default {
           throw new ApolloError(e);
         }
       }
-    ) as unknown) as IResolverObject,
-    deleteUser: (combineResolvers(
+    ) as UserResolvers,
+    deleteUser: combineResolvers(
       isAuthenticated,
       isAuthorizedUserOwner,
       async (_: any, { id }: any) => {
@@ -184,6 +184,6 @@ export default {
           throw new ApolloError(e);
         }
       }
-    ) as unknown) as IResolverObject,
+    ) as UserResolvers,
   },
 };

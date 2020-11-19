@@ -1,4 +1,4 @@
-import { Message } from "../generated/graphql";
+import { Message, MessageResolvers } from "../generated/graphql";
 import {
   ApolloError,
   ValidationError,
@@ -23,14 +23,14 @@ export default {
     },
   },
   Query: {
-    messages: (combineResolvers(isAuthenticated, async () => {
+    messages: combineResolvers(isAuthenticated, async () => {
       try {
         return await prisma.messages.findMany();
       } catch (e) {
         throw new ApolloError(e);
       }
-    }) as unknown) as IResolverObject,
-    message: (combineResolvers(isAuthenticated, async (_: any, args: any) => {
+    }) as MessageResolvers,
+    message: combineResolvers(isAuthenticated, async (_: any, args: any) => {
       try {
         const message = await prisma.messages.findOne({
           where: { id: args.id },
@@ -41,10 +41,10 @@ export default {
       } catch (e) {
         throw new ApolloError(e);
       }
-    }) as unknown) as IResolverObject,
+    }) as MessageResolvers,
   },
   Mutation: {
-    createMessage: (combineResolvers(
+    createMessage: combineResolvers(
       isAuthenticated,
       async (_: any, { content }: any, { me }: any) => {
         try {
@@ -63,7 +63,7 @@ export default {
           throw new ApolloError(e);
         }
       }
-    ) as unknown) as IResolverObject,
+    ) as MessageResolvers,
     updateMessage: (combineResolvers(
       isAuthenticated,
       isAuthorizedMessageOwner,
@@ -78,7 +78,7 @@ export default {
         }
       }
     ) as unknown) as IResolverObject,
-    deleteMessage: (combineResolvers(
+    deleteMessage: combineResolvers(
       isAuthenticated,
       isAuthorizedMessageOwner,
       async (_: any, { id }: any) => {
@@ -90,6 +90,6 @@ export default {
           throw new ApolloError(e);
         }
       }
-    ) as unknown) as IResolverObject,
+    ) as MessageResolvers,
   },
 };
