@@ -102,9 +102,10 @@ export default {
         const user = await prisma.users.findOne({
           where: { username: username },
         });
-        if (!user) return {} as User;
+        if (!user) throw new ApolloError("Provided credential is not correct");
         const is_valid = await bcrypt.compare(password, user.password);
-        if (!is_valid) return {} as User;
+        if (!is_valid)
+          throw new ApolloError("Provided credential is not correct");
         // const refreshToken = jwt.sign(
         //   {
         //     userID: user.id,
@@ -124,7 +125,7 @@ export default {
           }
         );
         res.cookie("access-token", accessToken, {
-          maxAge: 1000 * 60 * 15,
+          maxAge: 900000000,
           httpOnly: false,
         });
         await pubsub.publish(EVENTS.MESSAGE.USER_LOGGED_IN, {

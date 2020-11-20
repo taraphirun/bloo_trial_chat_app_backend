@@ -6,9 +6,7 @@ import schema from "./schema";
 import resolvers from "./resolvers";
 import { get_user_from_token } from "./utils/auth-helper";
 import http from "http";
-import { PubSub } from "apollo-server";
-
-const pubsub = new PubSub();
+import cors from "cors";
 
 const app = express();
 app.use(bodyParser.json({ limit: "10mb" }));
@@ -28,28 +26,28 @@ const allowCrossDomain: express.RequestHandler = (req, res, next) => {
   res.header("Access-Control-Allow-Credentials", "true");
   next();
 };
-app.use(allowCrossDomain);
+
+// app.use(
+//   cors({
+//     origin: "http://localhost:8080",
+//     optionsSuccessStatus: 200, // some legacy browsers (IE11, various SmartTVs) choke on 204
+//   })
+// );
 
 const server = new ApolloServer({
   typeDefs: schema,
   resolvers,
-  context: async ({ req, res, connection }) => {
-    // if (connection) {
-    //   console.log("modelsmodelsmodelsmodels", models);
-    //   return models;
-    // }
-    if (connection) {
-      console.log("Geting connectionconnection");
-      return;
-    }
+  context: async ({ req, res }) => {
     if (req) {
-      console.log("Geting ressssssss");
       let authToken = null;
       let me = null;
       try {
         authToken = req.cookies["access-token"];
-        if (authToken) me = await get_user_from_token(authToken.toString());
+        if (authToken) {
+          me = await get_user_from_token(authToken.toString());
+        }
       } catch (e) {
+        console.log("errrr", e);
         throw new ApolloError(e);
       }
       return { authToken, me, res };
@@ -59,8 +57,10 @@ const server = new ApolloServer({
 process.on("uncaughtException", (e) => {
   console.error(e);
 });
-server.applyMiddleware({ app, path: "/graphql" });
+server.applyMiddleware({ app, path: "/graphql", cors: false });
+app.use(allowCrossDomain);
 const httpServer = http.createServer(app);
+
 server.installSubscriptionHandlers(httpServer);
 
 export default httpServer;
