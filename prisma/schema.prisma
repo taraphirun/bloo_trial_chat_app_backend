@@ -8,12 +8,12 @@ datasource db {
 }
 
 model messages {
-  id        String   @id
-  content   String
-  createdAt DateTime
-  user_id   String
-  updatedAt DateTime
-  users     users    @relation(fields: [user_id], references: [id])
+  id         String   @id
+  content    String
+  created_at DateTime
+  user_id    String
+  updated_at DateTime
+  users      users    @relation(fields: [user_id], references: [id])
 }
 
 model users {
@@ -23,8 +23,8 @@ model users {
   username   String     @unique
   password   String
   nickname   String?
-  createdAt  DateTime
-  updatedAt  DateTime
+  created_at DateTime
+  updated_at DateTime
   messages   messages[]
 }
 

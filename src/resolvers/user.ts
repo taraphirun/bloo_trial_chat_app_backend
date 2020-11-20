@@ -71,8 +71,8 @@ export default {
             password: hashedPassword,
             first_name: first_name,
             last_name: last_name,
-            createdAt: new Date(),
-            updatedAt: new Date(),
+            created_at: new Date(),
+            updated_at: new Date(),
           },
         });
         // const refreshToken = jwt.sign(
@@ -175,7 +175,7 @@ export default {
               nickname,
               username,
               password: hashedPassword,
-              updatedAt: new Date(),
+              updated_at: new Date(),
             },
             where: { id: id },
           });

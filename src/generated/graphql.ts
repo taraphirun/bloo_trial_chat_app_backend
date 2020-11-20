@@ -36,6 +36,10 @@ export type QueryUserArgs = {
   id: Scalars["String"];
 };
 
+export type QueryMessagesArgs = {
+  created_at: Scalars["String"];
+};
+
 export type QueryMessageArgs = {
   id: Scalars["String"];
 };
@@ -43,8 +47,9 @@ export type QueryMessageArgs = {
 export type Mutation = {
   __typename?: "Mutation";
   _?: Maybe<Scalars["Boolean"]>;
-  signUpUser: Token;
-  loginUser?: Maybe<Token>;
+  signUpUser: User;
+  loginUser: User;
+  logoutUser: Scalars["Boolean"];
   updateUser: User;
   deleteUser: User;
   createMessage: Message;
@@ -91,6 +96,17 @@ export type MutationDeleteMessageArgs = {
   id: Scalars["ID"];
 };
 
+export type Subscription = {
+  __typename?: "Subscription";
+  _?: Maybe<Scalars["Boolean"]>;
+  userLoggedIn: User;
+  userLoggedOut: User;
+  userTyping: User;
+  messageCreated: Message;
+  messageUpdated: Message;
+  messageDeleted: Message;
+};
+
 export type User = {
   __typename?: "User";
   id: Scalars["ID"];
@@ -99,8 +115,8 @@ export type User = {
   nickname: Scalars["String"];
   username: Scalars["String"];
   messages?: Maybe<Array<Maybe<Message>>>;
-  createdAt: Scalars["String"];
-  updatedAt: Scalars["String"];
+  created_at: Scalars["String"];
+  updated_at: Scalars["String"];
 };
 
 export type Token = {
@@ -113,8 +129,8 @@ export type Message = {
   id: Scalars["ID"];
   content: Scalars["String"];
   user_id: Scalars["String"];
-  createdAt: Scalars["String"];
-  updatedAt: Scalars["String"];
+  created_at: Scalars["String"];
+  updated_at: Scalars["String"];
   user?: Maybe<User>;
 };
 
@@ -244,6 +260,7 @@ export type ResolversTypes = {
   String: ResolverTypeWrapper<Scalars["String"]>;
   Mutation: ResolverTypeWrapper<{}>;
   ID: ResolverTypeWrapper<Scalars["ID"]>;
+  Subscription: ResolverTypeWrapper<{}>;
   User: ResolverTypeWrapper<User>;
   Token: ResolverTypeWrapper<Token>;
   Message: ResolverTypeWrapper<Message>;
@@ -258,6 +275,7 @@ export type ResolversParentTypes = {
   String: Scalars["String"];
   Mutation: {};
   ID: Scalars["ID"];
+  Subscription: {};
   User: User;
   Token: Token;
   Message: Message;
@@ -284,7 +302,8 @@ export type QueryResolvers<
   messages?: Resolver<
     Maybe<Array<Maybe<ResolversTypes["Message"]>>>,
     ParentType,
-    ContextType
+    ContextType,
+    RequireFields<QueryMessagesArgs, "created_at">
   >;
   message?: Resolver<
     Maybe<ResolversTypes["Message"]>,
@@ -300,17 +319,18 @@ export type MutationResolvers<
 > = {
   _?: Resolver<Maybe<ResolversTypes["Boolean"]>, ParentType, ContextType>;
   signUpUser?: Resolver<
-    ResolversTypes["Token"],
+    ResolversTypes["User"],
     ParentType,
     ContextType,
     RequireFields<MutationSignUpUserArgs, "nickname" | "username" | "password">
   >;
   loginUser?: Resolver<
-    Maybe<ResolversTypes["Token"]>,
+    ResolversTypes["User"],
     ParentType,
     ContextType,
     RequireFields<MutationLoginUserArgs, "username" | "password">
   >;
+  logoutUser?: Resolver<ResolversTypes["Boolean"], ParentType, ContextType>;
   updateUser?: Resolver<
     ResolversTypes["User"],
     ParentType,
@@ -343,6 +363,54 @@ export type MutationResolvers<
   >;
 };
 
+export type SubscriptionResolvers<
+  ContextType = any,
+  ParentType extends ResolversParentTypes["Subscription"] = ResolversParentTypes["Subscription"]
+> = {
+  _?: SubscriptionResolver<
+    Maybe<ResolversTypes["Boolean"]>,
+    "_",
+    ParentType,
+    ContextType
+  >;
+  userLoggedIn?: SubscriptionResolver<
+    ResolversTypes["User"],
+    "userLoggedIn",
+    ParentType,
+    ContextType
+  >;
+  userLoggedOut?: SubscriptionResolver<
+    ResolversTypes["User"],
+    "userLoggedOut",
+    ParentType,
+    ContextType
+  >;
+  userTyping?: SubscriptionResolver<
+    ResolversTypes["User"],
+    "userTyping",
+    ParentType,
+    ContextType
+  >;
+  messageCreated?: SubscriptionResolver<
+    ResolversTypes["Message"],
+    "messageCreated",
+    ParentType,
+    ContextType
+  >;
+  messageUpdated?: SubscriptionResolver<
+    ResolversTypes["Message"],
+    "messageUpdated",
+    ParentType,
+    ContextType
+  >;
+  messageDeleted?: SubscriptionResolver<
+    ResolversTypes["Message"],
+    "messageDeleted",
+    ParentType,
+    ContextType
+  >;
+};
+
 export type UserResolvers<
   ContextType = any,
   ParentType extends ResolversParentTypes["User"] = ResolversParentTypes["User"]
@@ -365,8 +433,8 @@ export type UserResolvers<
     ParentType,
     ContextType
   >;
-  createdAt?: Resolver<ResolversTypes["String"], ParentType, ContextType>;
-  updatedAt?: Resolver<ResolversTypes["String"], ParentType, ContextType>;
+  created_at?: Resolver<ResolversTypes["String"], ParentType, ContextType>;
+  updated_at?: Resolver<ResolversTypes["String"], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
@@ -385,8 +453,8 @@ export type MessageResolvers<
   id?: Resolver<ResolversTypes["ID"], ParentType, ContextType>;
   content?: Resolver<ResolversTypes["String"], ParentType, ContextType>;
   user_id?: Resolver<ResolversTypes["String"], ParentType, ContextType>;
-  createdAt?: Resolver<ResolversTypes["String"], ParentType, ContextType>;
-  updatedAt?: Resolver<ResolversTypes["String"], ParentType, ContextType>;
+  created_at?: Resolver<ResolversTypes["String"], ParentType, ContextType>;
+  updated_at?: Resolver<ResolversTypes["String"], ParentType, ContextType>;
   user?: Resolver<Maybe<ResolversTypes["User"]>, ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
@@ -399,6 +467,7 @@ export interface UploadScalarConfig
 export type Resolvers<ContextType = any> = {
   Query?: QueryResolvers<ContextType>;
   Mutation?: MutationResolvers<ContextType>;
+  Subscription?: SubscriptionResolvers<ContextType>;
   User?: UserResolvers<ContextType>;
   Token?: TokenResolvers<ContextType>;
   Message?: MessageResolvers<ContextType>;

@@ -4,12 +4,12 @@ export default gql`
     id: ID!
     content: String!
     user_id: String!
-    createdAt: String!
-    updatedAt: String!
+    created_at: String!
+    updated_at: String!
     user: User
   }
   extend type Query {
-    messages: [Message]
+    messages(created_at: String!): [Message]
     message(id: String!): Message
   }
   extend type Mutation {

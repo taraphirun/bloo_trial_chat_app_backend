@@ -24,13 +24,20 @@ export default {
     },
   },
   Query: {
-    messages: combineResolvers(isAuthenticated, async () => {
-      try {
-        return await prisma.messages.findMany();
-      } catch (e) {
-        throw new ApolloError(e);
+    messages: combineResolvers(
+      isAuthenticated,
+      async (_: any, { created_at }: any) => {
+        try {
+          const messages = await prisma.$queryRaw<Message[]>(
+            `SELECT * from messages where cast(extract(epoch from created_at) as integer) <= ${created_at}`
+          );
+          console.log(messages);
+          return messages;
+        } catch (e) {
+          throw new ApolloError(e);
+        }
       }
-    }) as MessageResolvers,
+    ) as MessageResolvers,
     message: combineResolvers(isAuthenticated, async (_: any, args: any) => {
       try {
         const message = await prisma.messages.findOne({
@@ -56,8 +63,8 @@ export default {
               users: {
                 connect: { id: me.userID },
               },
-              createdAt: new Date(),
-              updatedAt: new Date(),
+              created_at: new Date(),
+              updated_at: new Date(),
             },
           });
           await pubsub.publish(EVENTS.MESSAGE.MESSAGE_CREATED, {
@@ -75,7 +82,7 @@ export default {
       async (_: any, { id, content }: any) => {
         try {
           const message = await prisma.messages.update({
-            data: { content: content, updatedAt: new Date() },
+            data: { content: content, updated_at: new Date() },
             where: { id: id },
           });
           await pubsub.publish(EVENTS.MESSAGE.MESSAGE_UPDATED, {

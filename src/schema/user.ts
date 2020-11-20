@@ -7,8 +7,8 @@ export default gql`
     nickname: String!
     username: String!
     messages: [Message]
-    createdAt: String!
-    updatedAt: String!
+    created_at: String!
+    updated_at: String!
   }
   extend type Query {
     me: User
