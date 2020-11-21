@@ -14,6 +14,8 @@ export default gql`
     me: User
     user(id: String!): User
     users: [User]
+    user_online: [User]
+    user_typing: [User]
   }
   type Token {
     token: String!
@@ -37,6 +39,8 @@ export default gql`
       password: String
     ): User!
     deleteUser(id: ID!): User!
+    updateUserTyping: Boolean!
+    updateUserOnline: Boolean!
   }
   extend type Subscription {
     userLoggedIn: User!

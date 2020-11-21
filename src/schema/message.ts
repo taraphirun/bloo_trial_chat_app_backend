@@ -1,7 +1,7 @@
 import { gql } from "apollo-server-express";
 export default gql`
   type Message {
-    id: ID!
+    id: ID
     content: String!
     user_id: String!
     created_at: String!
@@ -9,7 +9,7 @@ export default gql`
     user: User
   }
   extend type Query {
-    messages(created_at: String!): [Message]
+    messages(limit: Int!, cursor: Int): [Message]
     message(id: String!): Message
   }
   extend type Mutation {

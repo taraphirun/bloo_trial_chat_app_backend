@@ -26,11 +26,19 @@ export default {
   Query: {
     messages: combineResolvers(
       isAuthenticated,
-      async (_: any, { created_at }: any) => {
+      async (_: any, { limit, cursor }: any) => {
+        console.log("messages", cursor);
         try {
-          const messages = await prisma.$queryRaw<Message[]>(
-            `SELECT * from messages where cast(extract(epoch from created_at) as integer) <= ${created_at}`
-          );
+          // const messages = await prisma.$queryRaw<Message[]>(
+          //   `SELECT * from messages where cast(extract(epoch from created_at) as integer) <= ${created_at}`
+          // );
+          // const messages = await prisma.messages.findMany();
+          const messages = await prisma.messages.findMany({
+            take: limit,
+            cursor: {
+              id: cursor,
+            },
+          });
           console.log(messages);
           return messages;
         } catch (e) {
@@ -58,7 +66,6 @@ export default {
         try {
           const message = await prisma.messages.create({
             data: {
-              id: uuidv4(),
               content: content,
               users: {
                 connect: { id: me.userID },

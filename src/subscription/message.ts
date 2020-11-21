@@ -4,3 +4,4 @@ export const MESSAGE_UPDATED = "MESSAGE_UPDATED";
 export const USER_CREATED = "USER_CREATED";
 export const USER_LOGGED_IN = "USER_LOGGED_IN";
 export const USER_LOGGED_OUT = "USER_LOGGED_OUT";
+export const USER_TYPINGS = "USER_TYPINGS";

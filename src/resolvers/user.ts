@@ -55,6 +55,12 @@ export default {
         throw new ApolloError(e);
       }
     }) as UserResolvers,
+    user_online: combineResolvers(isAuthenticated, async () => {
+      return await prisma.user_online.findMany();
+    }) as UserResolvers,
+    user_typing: combineResolvers(isAuthenticated, async () => {
+      return await prisma.user_typing.findMany();
+    }) as UserResolvers,
   },
   Mutation: {
     signUpUser: async (
@@ -119,6 +125,14 @@ export default {
         //     expiresIn: "7d",
         //   }
         // );
+        await prisma.users.update({
+          data: {
+            last_seen: new Date(),
+          },
+          where: {
+            username: username,
+          },
+        });
         const accessToken = jwt.sign(
           { userID: user.id, username: user.username },
           jwt_access_token_secret,
@@ -199,6 +213,38 @@ export default {
         }
       }
     ) as UserResolvers,
+    updateUserTyping: combineResolvers(
+      isAuthenticated,
+      async (_: any, args: any, { me }: any) => {
+        try {
+          const user = prisma.users.update({
+            data: { last_typed: new Date() },
+            where: { id: me.userID },
+          });
+          const users_typing = await prisma.user_typing.findMany();
+          await pubsub.publish(EVENTS.MESSAGE.USER_TYPINGS, {
+            userTyping: users_typing,
+          });
+          return true;
+        } catch (e) {
+          throw new ApolloError(e);
+        }
+      }
+    ) as UserResolvers,
+    updateUserOnline: combineResolvers(
+      isAuthenticated,
+      async (_: any, args: any, { me }: any) => {
+        try {
+          await prisma.users.update({
+            data: { last_seen: new Date() },
+            where: { id: me.userID },
+          });
+          return true;
+        } catch (e) {
+          throw new ApolloError(e);
+        }
+      }
+    ) as UserResolvers,
   },
   Subscription: {
     userLoggedIn: {
@@ -206,6 +252,9 @@ export default {
     },
     userLoggedOut: {
       subscribe: () => pubsub.asyncIterator(EVENTS.MESSAGE.USER_LOGGED_OUT),
+    },
+    userTyping: {
+      subscribe: () => pubsub.asyncIterator(EVENTS.MESSAGE.USER_TYPINGS),
     },
   },
 };

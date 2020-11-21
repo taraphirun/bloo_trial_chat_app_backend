@@ -28,6 +28,8 @@ export type Query = {
   me?: Maybe<User>;
   user?: Maybe<User>;
   users?: Maybe<Array<Maybe<User>>>;
+  user_online?: Maybe<Array<Maybe<User>>>;
+  user_typing?: Maybe<Array<Maybe<User>>>;
   messages?: Maybe<Array<Maybe<Message>>>;
   message?: Maybe<Message>;
 };
@@ -37,7 +39,8 @@ export type QueryUserArgs = {
 };
 
 export type QueryMessagesArgs = {
-  created_at: Scalars["String"];
+  limit: Scalars["Int"];
+  created_at?: Maybe<Scalars["String"]>;
 };
 
 export type QueryMessageArgs = {
@@ -126,7 +129,7 @@ export type Token = {
 
 export type Message = {
   __typename?: "Message";
-  id: Scalars["ID"];
+  id?: Maybe<Scalars["ID"]>;
   content: Scalars["String"];
   user_id: Scalars["String"];
   created_at: Scalars["String"];
@@ -258,6 +261,7 @@ export type ResolversTypes = {
   Query: ResolverTypeWrapper<{}>;
   Boolean: ResolverTypeWrapper<Scalars["Boolean"]>;
   String: ResolverTypeWrapper<Scalars["String"]>;
+  Int: ResolverTypeWrapper<Scalars["Int"]>;
   Mutation: ResolverTypeWrapper<{}>;
   ID: ResolverTypeWrapper<Scalars["ID"]>;
   Subscription: ResolverTypeWrapper<{}>;
@@ -273,6 +277,7 @@ export type ResolversParentTypes = {
   Query: {};
   Boolean: Scalars["Boolean"];
   String: Scalars["String"];
+  Int: Scalars["Int"];
   Mutation: {};
   ID: Scalars["ID"];
   Subscription: {};
@@ -299,11 +304,21 @@ export type QueryResolvers<
     ParentType,
     ContextType
   >;
+  user_online?: Resolver<
+    Maybe<Array<Maybe<ResolversTypes["User"]>>>,
+    ParentType,
+    ContextType
+  >;
+  user_typing?: Resolver<
+    Maybe<Array<Maybe<ResolversTypes["User"]>>>,
+    ParentType,
+    ContextType
+  >;
   messages?: Resolver<
     Maybe<Array<Maybe<ResolversTypes["Message"]>>>,
     ParentType,
     ContextType,
-    RequireFields<QueryMessagesArgs, "created_at">
+    RequireFields<QueryMessagesArgs, "limit">
   >;
   message?: Resolver<
     Maybe<ResolversTypes["Message"]>,
@@ -450,7 +465,7 @@ export type MessageResolvers<
   ContextType = any,
   ParentType extends ResolversParentTypes["Message"] = ResolversParentTypes["Message"]
 > = {
-  id?: Resolver<ResolversTypes["ID"], ParentType, ContextType>;
+  id?: Resolver<Maybe<ResolversTypes["ID"]>, ParentType, ContextType>;
   content?: Resolver<ResolversTypes["String"], ParentType, ContextType>;
   user_id?: Resolver<ResolversTypes["String"], ParentType, ContextType>;
   created_at?: Resolver<ResolversTypes["String"], ParentType, ContextType>;

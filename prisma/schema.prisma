@@ -8,7 +8,7 @@ datasource db {
 }
 
 model messages {
-  id         String   @id
+  id         Int      @id @default(autoincrement())
   content    String
   created_at DateTime
   user_id    String
@@ -28,6 +28,31 @@ model users {
   last_typed DateTime
   last_seen  DateTime
   messages   messages[]
+}
+
+model user_online {
+  id         String     @id
+    first_name String?
+    last_name  String?
+    username   String     @unique
+    password   String
+    nickname   String?
+    created_at DateTime
+    updated_at DateTime
+    last_typed DateTime
+    last_seen  DateTime
+}
+model user_typing {
+  id         String     @id
+    first_name String?
+    last_name  String?
+    username   String     @unique
+    password   String
+    nickname   String?
+    created_at DateTime
+    updated_at DateTime
+    last_typed DateTime
+    last_seen  DateTime
 }
 
 model blacklist {
