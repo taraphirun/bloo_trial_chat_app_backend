@@ -85,9 +85,10 @@ export default {
               updated_at: new Date(),
             },
           });
-          await pubsub.publish(EVENTS.MESSAGE.MESSAGE_CREATED, {
-            messageCreated: message,
-          });
+          if (message.user_id != me.id)
+            await pubsub.publish(EVENTS.MESSAGE.MESSAGE_CREATED, {
+              messageCreated: message,
+            });
           return message;
         } catch (e) {
           throw new ApolloError(e);
@@ -104,7 +105,7 @@ export default {
             where: { id: id },
           });
           await pubsub.publish(EVENTS.MESSAGE.MESSAGE_UPDATED, {
-            messageCreated: message,
+            messageUpdated: message,
           });
           return message;
         } catch (e) {
@@ -121,7 +122,7 @@ export default {
             where: { id: id },
           });
           await pubsub.publish(EVENTS.MESSAGE.MESSAGE_DELETED, {
-            messageCreated: message,
+            messageDeleted: message,
           });
           return message;
         } catch (e) {
