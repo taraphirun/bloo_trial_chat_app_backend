@@ -144,9 +144,6 @@ export default {
           maxAge: 900000000,
           httpOnly: false,
         });
-        await pubsub.publish(EVENTS.MESSAGE.USER_LOGGED_IN, {
-          userLoggedIn: user,
-        });
         return user;
       } catch (e) {
         throw new ApolloError(e);
@@ -156,16 +153,13 @@ export default {
       isAuthenticated,
       async (_: any, args: any, { authToken, me }: any) => {
         try {
-          const user = prisma.users.findOne({
+          await prisma.users.findOne({
             where: { id: me.userID },
           });
           await prisma.blacklist.create({
             data: {
               token: authToken,
             },
-          });
-          await pubsub.publish(EVENTS.MESSAGE.USER_LOGGED_OUT, {
-            userLoggedOut: user,
           });
           return true;
         } catch (e) {
@@ -221,7 +215,13 @@ export default {
             data: { last_typed: new Date() },
             where: { id: me.userID },
           });
-          const users_typing = await prisma.user_typing.findMany();
+          const users_typing = await prisma.user_typing.findMany({
+            where: {
+              id: {
+                not: me.userID,
+              },
+            },
+          });
           await pubsub.publish(EVENTS.MESSAGE.USER_TYPINGS, {
             userTyping: users_typing,
           });
@@ -239,6 +239,16 @@ export default {
             data: { last_seen: new Date() },
             where: { id: me.userID },
           });
+          const currentUsersLoggedIn = await prisma.user_online.findMany({
+            where: {
+              id: {
+                not: me.userID,
+              },
+            },
+          });
+          await pubsub.publish(EVENTS.MESSAGE.USER_ONLINE, {
+            userOnline: currentUsersLoggedIn,
+          });
           return true;
         } catch (e) {
           throw new ApolloError(e);
@@ -247,11 +257,11 @@ export default {
     ) as UserResolvers,
   },
   Subscription: {
-    userLoggedIn: {
-      subscribe: () => pubsub.asyncIterator(EVENTS.MESSAGE.USER_LOGGED_IN),
-    },
-    userLoggedOut: {
-      subscribe: () => pubsub.asyncIterator(EVENTS.MESSAGE.USER_LOGGED_OUT),
+    userOnline: {
+      subscribe: () => {
+        console.log("subscribe disconnect");
+        return pubsub.asyncIterator(EVENTS.MESSAGE.USER_ONLINE);
+      },
     },
     userTyping: {
       subscribe: () => pubsub.asyncIterator(EVENTS.MESSAGE.USER_TYPINGS),

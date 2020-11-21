@@ -43,8 +43,7 @@ export default gql`
     updateUserOnline: Boolean!
   }
   extend type Subscription {
-    userLoggedIn: User!
-    userLoggedOut: User!
-    userTyping: User!
+    userOnline: [User]
+    userTyping: [User]!
   }
 `;

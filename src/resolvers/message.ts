@@ -29,14 +29,10 @@ export default {
       async (_: any, { limit, cursor }: any) => {
         console.log("messages", cursor);
         try {
-          // const messages = await prisma.$queryRaw<Message[]>(
-          //   `SELECT * from messages where cast(extract(epoch from created_at) as integer) <= ${created_at}`
-          // );
-          // const messages = await prisma.messages.findMany();
           const messages = await prisma.messages.findMany({
             take: limit,
             cursor: {
-              id: cursor,
+              id: cursor + 1,
             },
           });
           console.log(messages);

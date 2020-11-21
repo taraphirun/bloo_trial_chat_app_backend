@@ -6,8 +6,9 @@ import schema from "./schema";
 import resolvers from "./resolvers";
 import { get_user_from_token } from "./utils/auth-helper";
 import http from "http";
-import cors from "cors";
+import { PrismaClient } from "@prisma/client";
 
+const prisma = new PrismaClient();
 const app = express();
 app.use(bodyParser.json({ limit: "10mb" }));
 app.use(
@@ -33,11 +34,10 @@ const allowCrossDomain: express.RequestHandler = (req, res, next) => {
 //     optionsSuccessStatus: 200, // some legacy browsers (IE11, various SmartTVs) choke on 204
 //   })
 // );
-
 const server = new ApolloServer({
   typeDefs: schema,
   resolvers,
-  context: async ({ req, res }) => {
+  context: async ({ req, res, connection }) => {
     if (req) {
       let authToken = null;
       let me = null;
@@ -52,6 +52,42 @@ const server = new ApolloServer({
       }
       return { authToken, me, res };
     }
+  },
+  subscriptions: {
+    ///==> Attempting to update online user list when socket connect or disconnect
+    // onConnect: async (connectionParams, webSocket, context) => {
+    //   try {
+    //     console.log("connected", context.request);
+    //     let me = null;
+    //     if (context.request.headers.cookie) {
+    //       const me = decode(
+    //         context.request.headers.cookie.replace("access-token=", "")
+    //       );
+    //       console.log("user connected ", me);
+    //     }
+    //
+    //     const currentUsersLoggedIn = await prisma.user_online.findMany();
+    //     await pubsub.publish(EVENTS.MESSAGE.USER_ONLINE, {
+    //       userOnline: currentUsersLoggedIn,
+    //     });
+    //   } catch (e) {
+    //     console.log("onConnect error", e);
+    //   }
+    // },
+    // onDisconnect: async (webSocket, context) => {
+    //   let me = null;
+    //   if (context.request.headers.cookie)
+    //     if (context.request.headers.cookie) {
+    //       me = decode(
+    //         context.request.headers.cookie.replace("access-token=", "")
+    //       );
+    //     }
+    //   console.log("user disconnect ", me);
+    //   const currentUsersLoggedIn = await prisma.user_online.findMany();
+    //   await pubsub.publish(EVENTS.MESSAGE.USER_ONLINE, {
+    //     userOnline: currentUsersLoggedIn,
+    //   });
+    // },
   },
 });
 process.on("uncaughtException", (e) => {
