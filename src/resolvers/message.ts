@@ -27,18 +27,33 @@ export default {
     messages: combineResolvers(
       isAuthenticated,
       async (_: any, { limit, cursor }: any) => {
-        console.log("messages", cursor);
-        try {
-          const messages = await prisma.messages.findMany({
-            take: limit,
-            cursor: {
-              id: cursor + 1,
-            },
-          });
-          console.log(messages);
-          return messages;
-        } catch (e) {
-          throw new ApolloError(e);
+        if (cursor) {
+          console.log("messages", cursor);
+          try {
+            const messages = await prisma.messages.findMany({
+              take: -limit,
+              cursor: {
+                id: cursor - 1,
+              },
+            });
+            console.log(messages);
+            return messages.reverse();
+          } catch (e) {
+            throw new ApolloError(e);
+          }
+        } else {
+          try {
+            const messages = await prisma.messages.findMany({
+              take: limit,
+              orderBy: {
+                id: "desc",
+              },
+            });
+            console.log(messages);
+            return messages;
+          } catch (e) {
+            throw new ApolloError(e);
+          }
         }
       }
     ) as MessageResolvers,
