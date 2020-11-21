@@ -211,17 +211,33 @@ export default {
       isAuthenticated,
       async (_: any, args: any, { me }: any) => {
         try {
-          const user = prisma.users.update({
+          const user = await prisma.users.update({
             data: { last_typed: new Date() },
             where: { id: me.userID },
           });
-          const users_typing = await prisma.user_typing.findMany({
-            where: {
-              id: {
-                not: me.userID,
-              },
-            },
-          });
+          console.log("username", user.username);
+          console.log("me.username", me.username);
+          console.log("compare", user.id == me.userID);
+
+          // const users_typing = await prisma.user_typing.findFirst({
+          //   where: {
+          //     id: {
+          //       not: me.userID,
+          //     },
+          //   },
+          // });
+          const users_typing = await prisma.$queryRaw<
+            User
+          >`SELECT * FROM user_typing where id != ${me.userID}`;
+          // const result   = await prisma.$queryRaw<asset>`SELECT * FROM asset WHERE id IN (${join(ids)})`;
+          // const users_typing = await prisma.user_typing.findMany({
+          //   where: {
+          //     id: {
+          //       not: me.userID,
+          //     },
+          //   },
+          // });
+          console.log("users_typing", users_typing);
           await pubsub.publish(EVENTS.MESSAGE.USER_TYPINGS, {
             userTyping: users_typing,
           });

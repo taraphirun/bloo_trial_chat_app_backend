@@ -44,6 +44,6 @@ export default gql`
   }
   extend type Subscription {
     userOnline: [User]
-    userTyping: [User]!
+    userTyping: [User]
   }
 `;
