@@ -73,6 +73,8 @@ export default {
             last_name: last_name,
             created_at: new Date(),
             updated_at: new Date(),
+            last_typed: new Date(),
+            last_seen: new Date(),
           },
         });
         // const refreshToken = jwt.sign(

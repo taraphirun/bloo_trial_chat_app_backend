@@ -25,6 +25,8 @@ model users {
   nickname   String?
   created_at DateTime
   updated_at DateTime
+  last_typed DateTime
+  last_seen  DateTime
   messages   messages[]
 }
 
