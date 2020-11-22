@@ -38,6 +38,9 @@ const server = new ApolloServer({
   typeDefs: schema,
   resolvers,
   context: async ({ req, res, connection }) => {
+    if (connection) {
+      return connection.context;
+    }
     if (req) {
       let authToken = null;
       let me = null;
@@ -57,19 +60,18 @@ const server = new ApolloServer({
     ///==> Attempting to update online user list when socket connect or disconnect
     // onConnect: async (connectionParams, webSocket, context) => {
     //   try {
-    //     console.log("connected", context.request);
-    //     let me = null;
-    //     if (context.request.headers.cookie) {
-    //       const me = decode(
-    //         context.request.headers.cookie.replace("access-token=", "")
-    //       );
-    //       console.log("user connected ", me);
-    //     }
-    //
-    //     const currentUsersLoggedIn = await prisma.user_online.findMany();
-    //     await pubsub.publish(EVENTS.MESSAGE.USER_ONLINE, {
-    //       userOnline: currentUsersLoggedIn,
-    //     });
+    //     // let me = null;
+    //     // if (context.request.headers.cookie) {
+    //     //   const me = decode(
+    //     //     context.request.headers.cookie.replace("access-token=", "")
+    //     //   );
+    //     //   console.log("user connected ", me);
+    //     // }
+    //     //
+    //     // const currentUsersLoggedIn = await prisma.user_online.findMany();
+    //     // await pubsub.publish(EVENTS.MESSAGE.USER_ONLINE, {
+    //     //   userOnline: currentUsersLoggedIn,
+    //     // });
     //   } catch (e) {
     //     console.log("onConnect error", e);
     //   }

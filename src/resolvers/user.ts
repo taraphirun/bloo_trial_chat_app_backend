@@ -12,6 +12,7 @@ import { jwt_access_token_secret, jwt_refresh_token_secret } from "../config";
 import { combineResolvers } from "graphql-resolvers";
 import { isAuthenticated, isAuthorizedUserOwner } from "./auth";
 import pubsub, { EVENTS } from "../subscription";
+import { withFilter } from "apollo-server";
 
 const prisma = new PrismaClient();
 const saltRounds = 10;
@@ -226,9 +227,9 @@ export default {
           //     },
           //   },
           // });
-          const users_typing = await prisma.$queryRaw<
-            User
-          >`SELECT * FROM user_typing where id != ${me.userID}`;
+          // const users_typing = await prisma.$queryRaw<
+          //   User
+          // >`SELECT * FROM user_typing where id != ${me.userID}`;
           // const result   = await prisma.$queryRaw<asset>`SELECT * FROM asset WHERE id IN (${join(ids)})`;
           // const users_typing = await prisma.user_typing.findMany({
           //   where: {
@@ -237,9 +238,9 @@ export default {
           //     },
           //   },
           // });
-          console.log("users_typing", users_typing);
+
           await pubsub.publish(EVENTS.MESSAGE.USER_TYPINGS, {
-            userTyping: users_typing,
+            userTyping: [],
           });
           return true;
         } catch (e) {
@@ -280,7 +281,26 @@ export default {
       },
     },
     userTyping: {
-      subscribe: () => pubsub.asyncIterator(EVENTS.MESSAGE.USER_TYPINGS),
+      subscribe: withFilter(
+        () => pubsub.asyncIterator(EVENTS.MESSAGE.USER_TYPINGS),
+        async (payload, variables) => {
+          try {
+            const users_typing = await prisma.user_typing.findFirst({
+              where: {
+                id: {
+                  not: variables.id,
+                },
+              },
+            });
+            payload.userTyping = users_typing;
+            return true;
+          } catch (e) {
+            console.log("err on sub typing", e);
+
+            return false;
+          }
+        }
+      ),
     },
   },
 };
