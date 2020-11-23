@@ -40,7 +40,7 @@ export type QueryUserArgs = {
 
 export type QueryMessagesArgs = {
   limit: Scalars["Int"];
-  created_at?: Maybe<Scalars["String"]>;
+  cursor?: Maybe<Scalars["Int"]>;
 };
 
 export type QueryMessageArgs = {
@@ -55,9 +55,11 @@ export type Mutation = {
   logoutUser: Scalars["Boolean"];
   updateUser: User;
   deleteUser: User;
+  updateUserTyping: Scalars["Boolean"];
+  updateUserOnline: Scalars["Boolean"];
   createMessage: Message;
   updateMessage: Message;
-  deleteMessage: Message;
+  deleteMessage: Scalars["Boolean"];
 };
 
 export type MutationSignUpUserArgs = {
@@ -91,23 +93,30 @@ export type MutationCreateMessageArgs = {
 };
 
 export type MutationUpdateMessageArgs = {
-  id: Scalars["ID"];
+  id: Scalars["Int"];
   content: Scalars["String"];
 };
 
 export type MutationDeleteMessageArgs = {
-  id: Scalars["ID"];
+  id: Scalars["Int"];
 };
 
 export type Subscription = {
   __typename?: "Subscription";
   _?: Maybe<Scalars["Boolean"]>;
-  userLoggedIn: User;
-  userLoggedOut: User;
-  userTyping: User;
+  userOnline?: Maybe<Array<Maybe<User>>>;
+  userTyping?: Maybe<User>;
   messageCreated: Message;
   messageUpdated: Message;
   messageDeleted: Message;
+};
+
+export type SubscriptionUserOnlineArgs = {
+  id: Scalars["ID"];
+};
+
+export type SubscriptionUserTypingArgs = {
+  id: Scalars["ID"];
 };
 
 export type User = {
@@ -358,6 +367,16 @@ export type MutationResolvers<
     ContextType,
     RequireFields<MutationDeleteUserArgs, "id">
   >;
+  updateUserTyping?: Resolver<
+    ResolversTypes["Boolean"],
+    ParentType,
+    ContextType
+  >;
+  updateUserOnline?: Resolver<
+    ResolversTypes["Boolean"],
+    ParentType,
+    ContextType
+  >;
   createMessage?: Resolver<
     ResolversTypes["Message"],
     ParentType,
@@ -371,7 +390,7 @@ export type MutationResolvers<
     RequireFields<MutationUpdateMessageArgs, "id" | "content">
   >;
   deleteMessage?: Resolver<
-    ResolversTypes["Message"],
+    ResolversTypes["Boolean"],
     ParentType,
     ContextType,
     RequireFields<MutationDeleteMessageArgs, "id">
@@ -388,23 +407,19 @@ export type SubscriptionResolvers<
     ParentType,
     ContextType
   >;
-  userLoggedIn?: SubscriptionResolver<
-    ResolversTypes["User"],
-    "userLoggedIn",
+  userOnline?: SubscriptionResolver<
+    Maybe<Array<Maybe<ResolversTypes["User"]>>>,
+    "userOnline",
     ParentType,
-    ContextType
-  >;
-  userLoggedOut?: SubscriptionResolver<
-    ResolversTypes["User"],
-    "userLoggedOut",
-    ParentType,
-    ContextType
+    ContextType,
+    RequireFields<SubscriptionUserOnlineArgs, "id">
   >;
   userTyping?: SubscriptionResolver<
-    ResolversTypes["User"],
+    Maybe<ResolversTypes["User"]>,
     "userTyping",
     ParentType,
-    ContextType
+    ContextType,
+    RequireFields<SubscriptionUserTypingArgs, "id">
   >;
   messageCreated?: SubscriptionResolver<
     ResolversTypes["Message"],

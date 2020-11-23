@@ -6,6 +6,7 @@ export default gql`
     user_id: String!
     created_at: String!
     updated_at: String!
+    is_deleted: Boolean
     user: User
   }
   extend type Query {
@@ -14,8 +15,8 @@ export default gql`
   }
   extend type Mutation {
     createMessage(content: String!): Message!
-    updateMessage(id: ID!, content: String!): Message!
-    deleteMessage(id: ID!): Message!
+    updateMessage(id: Int!, content: String!): Message!
+    deleteMessage(id: Int!): Boolean!
   }
   extend type Subscription {
     messageCreated: Message!

@@ -13,6 +13,7 @@ model messages {
   created_at DateTime
   user_id    String
   updated_at DateTime
+  is_deleted Boolean  @default(false)
   users      users    @relation(fields: [user_id], references: [id])
 }
 
@@ -29,7 +30,6 @@ model users {
   last_seen  DateTime
   messages   messages[]
 }
-
 model user_online {
   id         String     @id
     first_name String?
@@ -54,7 +54,6 @@ model user_typing {
     last_typed DateTime
     last_seen  DateTime
 }
-
 model blacklist {
   token String @id
 }

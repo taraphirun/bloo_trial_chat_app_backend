@@ -5,7 +5,6 @@ import {
   IResolverObject,
 } from "apollo-server-express";
 import { PrismaClient } from "@prisma/client";
-import { v4 as uuidv4 } from "uuid";
 const prisma = new PrismaClient();
 import { combineResolvers } from "graphql-resolvers";
 import { isAuthenticated, isAuthorizedMessageOwner } from "./auth";
@@ -100,6 +99,12 @@ export default {
       isAuthorizedMessageOwner,
       async (_: any, { id, content }: any) => {
         try {
+          const checkIfDeleted = await prisma.messages.findOne({
+            where: { id: id },
+          });
+          if (checkIfDeleted && checkIfDeleted.is_deleted) {
+            throw new ApolloError("Message deleted");
+          }
           const message = await prisma.messages.update({
             data: { content: content, updated_at: new Date() },
             where: { id: id },
@@ -109,6 +114,7 @@ export default {
           });
           return message;
         } catch (e) {
+          console.log("updateMessage", e);
           throw new ApolloError(e);
         }
       }
@@ -117,14 +123,16 @@ export default {
       isAuthenticated,
       isAuthorizedMessageOwner,
       async (_: any, { id }: any) => {
+        console.log("id", id);
         try {
-          const message = await prisma.messages.delete({
+          const message = await prisma.messages.update({
+            data: { content: "[Message deleted]", is_deleted: true },
             where: { id: id },
           });
           await pubsub.publish(EVENTS.MESSAGE.MESSAGE_DELETED, {
             messageDeleted: message,
           });
-          return message;
+          return true;
         } catch (e) {
           throw new ApolloError(e);
         }
