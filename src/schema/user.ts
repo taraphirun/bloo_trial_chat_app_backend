@@ -43,7 +43,7 @@ export default gql`
     updateUserOnline: Boolean!
   }
   extend type Subscription {
-    userOnline: [User]
+    userOnline(id: ID!): [User]
     userTyping(id: ID!): User
   }
 `;

@@ -138,11 +138,11 @@ export default {
           { userID: user.id, username: user.username },
           jwt_access_token_secret,
           {
-            expiresIn: "20min",
+            expiresIn: "15min",
           }
         );
         res.cookie("access-token", accessToken, {
-          maxAge: 900000000,
+          maxAge: 900000,
           httpOnly: false,
         });
         return user;
@@ -216,9 +216,9 @@ export default {
             data: { last_typed: new Date() },
             where: { id: me.userID },
           });
-          console.log("username", user.username);
-          console.log("me.username", me.username);
-          console.log("compare", user.id == me.userID);
+          // console.log("username", user.username);
+          // console.log("me.username", me.username);
+          // console.log("compare", user.id == me.userID);
 
           // const users_typing = await prisma.user_typing.findFirst({
           //   where: {
@@ -275,10 +275,29 @@ export default {
   },
   Subscription: {
     userOnline: {
-      subscribe: () => {
-        console.log("subscribe disconnect");
-        return pubsub.asyncIterator(EVENTS.MESSAGE.USER_ONLINE);
-      },
+      subscribe: withFilter(
+        () => pubsub.asyncIterator(EVENTS.MESSAGE.USER_ONLINE),
+        async (payload, variables) => {
+          try {
+            const userOnline = await prisma.user_online.findMany({
+              where: {
+                id: {
+                  not: variables.id,
+                },
+              },
+            });
+            if (userOnline.length > 0) {
+              payload.userOnline = userOnline;
+              return true;
+            } else {
+              return false;
+            }
+          } catch (e) {
+            console.log("err on sub typing", e);
+            return false;
+          }
+        }
+      ),
     },
     userTyping: {
       subscribe: withFilter(
