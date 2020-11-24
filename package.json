@@ -7,7 +7,7 @@
   "license": "MIT",
   "scripts": {
     "dev": "npx nodemon",
-    "start": "yarn build && yarn serve",
+    "start": "yarn build && yarn serve-pm2",
     "serve": "node -r dotenv/config build/server.js",
     "serve-pm2": "pm2 kill && pm2 start",
     "build": "yarn build-ts",

@@ -35,6 +35,7 @@ const allowCrossDomain: express.RequestHandler = (req, res, next) => {
 //   })
 // );
 const server = new ApolloServer({
+  playground: true,
   typeDefs: schema,
   resolvers,
   context: async ({ req, res, connection }) => {
