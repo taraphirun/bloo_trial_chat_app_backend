@@ -28,7 +28,7 @@ export default gql`
       first_name: String
       last_name: String
     ): User!
-    loginUser(username: String!, password: String!): User!
+    loginUser(username: String!): User!
     logoutUser: Boolean!
     updateUser(
       id: ID!

@@ -66,7 +66,8 @@ export default {
   Mutation: {
     signUpUser: async (
       _: any,
-      { nickname, username, password, first_name, last_name }: any
+      { nickname, username, password, first_name, last_name }: any,
+      { res }: any
     ) => {
       try {
         const hashedPassword = await bcrypt.hash(password, saltRounds);
@@ -96,44 +97,66 @@ export default {
         // );
         const accessToken = jwt.sign(
           { userID: createdUser.id, username: createdUser.username },
-          jwt_refresh_token_secret,
+          jwt_access_token_secret,
           {
-            expiresIn: "20min",
+            expiresIn: "15min",
           }
         );
-        return { token: accessToken };
+        res.cookie("access-token", accessToken, {
+          maxAge: 900000,
+          httpOnly: false,
+        });
+        return createdUser;
       } catch (e) {
         throw new ApolloError(e);
       }
     },
     loginUser: async (_: any, { username, password }: any, { res }: any) => {
       try {
-        const user = await prisma.users.findOne({
+        let user = await prisma.users.findOne({
           where: { username: username },
         });
-        if (!user) throw new ApolloError("Provided credential is not correct");
-        const is_valid = await bcrypt.compare(password, user.password);
-        if (!is_valid)
-          throw new ApolloError("Provided credential is not correct");
-        // const refreshToken = jwt.sign(
-        //   {
-        //     userID: user.id,
-        //     username: user.username,
-        //     uuid: uuidv4(),
-        //   },
-        //   jwt_refresh_token_secret,
-        //   {
-        //     expiresIn: "7d",
-        //   }
-        // );
-        await prisma.users.update({
-          data: {
-            last_seen: new Date(),
-          },
-          where: {
-            username: username,
-          },
-        });
+        //--> auth password check
+        // if (!user) throw new ApolloError("Provided credential is not correct");
+        // const is_valid = await bcrypt.compare(password, user.password);
+        // if (!is_valid)
+        //   throw new ApolloError("Provided credential is not correct");
+        // // const refreshToken = jwt.sign(
+        // //   {
+        // //     userID: user.id,
+        // //     username: user.username,
+        // //     uuid: uuidv4(),
+        // //   },
+        // //   jwt_refresh_token_secret,
+        // //   {
+        // //     expiresIn: "7d",
+        // //   }
+        // // );
+        if (user) {
+          await prisma.users.update({
+            data: {
+              last_seen: new Date(),
+            },
+            where: {
+              username: username,
+            },
+          });
+        } else {
+          user = await prisma.users.create({
+            data: {
+              id: uuidv4(),
+              nickname: "",
+              username: username,
+              password: "",
+              first_name: "",
+              last_name: "",
+              created_at: new Date(),
+              updated_at: new Date(),
+              last_typed: new Date(),
+              last_seen: new Date(),
+            },
+          });
+        }
         const accessToken = jwt.sign(
           { userID: user.id, username: user.username },
           jwt_access_token_secret,
